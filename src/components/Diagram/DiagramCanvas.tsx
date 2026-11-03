@@ -65,6 +65,7 @@ export function DiagramCanvas({
     startNodeY: number;
     moved: boolean;
   } | null>(null);
+  const panGestureRef = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
 
   // FK columns per table, one pass over the refs (shared by every TableNode).
   const fkIndex = useMemo(() => buildFkIndex(schema), [schema]);
@@ -143,8 +144,8 @@ export function DiagramCanvas({
           e.target === svgRef.current ||
           (e.target as Element).classList.contains("canvas-bg")
         ) {
-          setSelectedTable(null);
-          setSelectedEdge(null);
+          panGestureRef.current = { startX: e.clientX, startY: e.clientY, moved: false };
+          setHoverInfo(null);
         }
       }
     },
@@ -167,13 +168,17 @@ export function DiagramCanvas({
           ds.startNodeY + sdy / scale
         );
       } else {
+        const pan = panGestureRef.current;
+        if (pan && Math.abs(e.clientX - pan.startX) + Math.abs(e.clientY - pan.startY) >= DRAG_THRESHOLD) {
+          pan.moved = true;
+        }
         vtMouseMove(e);
       }
     },
     [getTransform, moveNode, vtMouseMove]
   );
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e: React.MouseEvent<SVGSVGElement>) => {
     const ds = dragStateRef.current;
     if (ds) {
       if (!ds.moved) {
@@ -182,6 +187,15 @@ export function DiagramCanvas({
       }
       dragStateRef.current = null;
       endDrag();
+    }
+    const pan = panGestureRef.current;
+    if (pan) {
+      const distance = Math.abs(e.clientX - pan.startX) + Math.abs(e.clientY - pan.startY);
+      if (e.type === "mouseup" && !pan.moved && distance < DRAG_THRESHOLD) {
+        setSelectedTable(null);
+        setSelectedEdge(null);
+      }
+      panGestureRef.current = null;
     }
     vtMouseUp();
   }, [endDrag, vtMouseUp]);
@@ -198,10 +212,9 @@ export function DiagramCanvas({
 
   const tooltipContent = getTooltipContent(schema, hoverInfo);
 
-  // The table whose relationships are emphasized: live hover takes priority,
-  // otherwise the persistently selected table. Disabled while dragging.
-  const hoveredTable = np.isDragging ? null : hoverInfo?.tableName ?? null;
-  const focusTable = hoveredTable ?? selectedTable;
+  // A selection remains focused while panning or hovering other tables.
+  const hoveredTable = np.isDragging || vt.isPanning ? null : hoverInfo?.tableName ?? null;
+  const focusTable = selectedTable ?? (selectedEdge == null ? hoveredTable : null);
 
   // Tables that stay fully visible: the focused table + its direct neighbours,
   // or the endpoints of a selected relationship.

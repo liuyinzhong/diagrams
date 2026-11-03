@@ -1,6 +1,6 @@
 [package]
 name = "diagrams"
-version = "0.0.4"
+version = "1.0.1"
 edition = "2024"
 
 [lib]
@@ -15,7 +15,7 @@ tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-shell = "2"
-dbml-rs = "1.0"
+dbml-rs = { path = "vendor/dbml-rs" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"

@@ -518,8 +518,6 @@ dependencies = [
 [[package]]
 name = "dbml-rs"
 version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ddeeba177b8047c8bdd42d265c653af5e635f73b2e442150fda4d829990079f"
 dependencies = [
  "derive_more",
  "pest",
@@ -572,7 +570,7 @@ dependencies = [
 
 [[package]]
 name = "diagrams"
-version = "0.0.4"
+version = "1.0.1"
 dependencies = [
  "dbml-rs",
  "pest",

@@ -50,3 +50,45 @@ pub async fn parse_dbml(input: String) -> ParseResult {
             }),
         })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::parse_dbml_sync;
+
+    #[test]
+    fn mysql_types_and_named_unique_btree_indexes_are_preserved() {
+        let input = r#"
+Table parent {
+  id char(36) [pk]
+  pid varchar(36)
+  status tinyint [not null, default: 1]
+  enabled tinyint(1) [not null, default: 0]
+  updated datetime(6) [default: `CURRENT_TIMESTAMP`]
+  body longtext
+  indexes {
+    (status, enabled) [name: 'uk_status_enabled', unique, type: btree]
+  }
+}
+Ref: parent.pid > parent.id
+"#;
+        let parsed = parse_dbml_sync(input);
+        assert!(parsed.error.is_none(), "{:?}", parsed.error.map(|e| e.message));
+        let schema = parsed.schema.unwrap();
+        let table = &schema.tables[0];
+        assert_eq!(table.columns[1].r#type, "varchar(36)");
+        assert_eq!(table.columns[2].r#type, "tinyint");
+        assert_eq!(table.columns[3].r#type, "tinyint(1)");
+        assert_eq!(table.columns[4].r#type, "datetime(6)");
+        assert_eq!(table.columns[5].r#type, "longtext");
+        assert_eq!(table.indexes[0].name.as_deref(), Some("uk_status_enabled"));
+        assert!(table.indexes[0].is_unique);
+        assert_eq!(table.indexes[0].index_type.as_deref(), Some("btree"));
+        assert_eq!(schema.refs.len(), 1);
+    }
+
+    #[test]
+    fn incompatible_reference_types_still_fail_validation() {
+        let input = "Table parent {\n id int [pk]\n pid varchar(36)\n}\nRef: parent.pid > parent.id";
+        assert!(parse_dbml_sync(input).error.is_some());
+    }
+}
