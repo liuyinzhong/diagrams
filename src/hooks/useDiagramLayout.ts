@@ -19,7 +19,7 @@ interface UseDiagramLayoutResult {
 
 export function useDiagramLayout(
   schema: SchemaIR | null,
-  rankdir: "LR" | "TB" = "LR",
+  rankdir: "LR" | "RL" | "TB" = "LR",
   detailLevel: DetailLevel = "full"
 ): UseDiagramLayoutResult {
   const job = useMemo<LayoutJob | null>(() => {

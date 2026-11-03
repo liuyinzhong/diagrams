@@ -57,8 +57,8 @@ export function ImportMenu({ onImportFile, onPasteSql }: ImportMenuProps) {
     <div ref={menuRef} style={{ position: "relative" }}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        title="Import SQL"
-        aria-label="Import SQL"
+        title="导入 SQL"
+        aria-label="导入 SQL"
         style={{
           background: theme.controlBg,
           border: `1px solid ${theme.controlBorder}`,
@@ -98,10 +98,10 @@ export function ImportMenu({ onImportFile, onPasteSql }: ImportMenuProps) {
             onMouseEnter={(e) => ((e.target as HTMLElement).style.backgroundColor = theme.controlHoverBg)}
             onMouseLeave={(e) => ((e.target as HTMLElement).style.backgroundColor = "transparent")}
           >
-            Paste SQL…
+            粘贴 SQL…
           </button>
           <div style={{ borderTop: `1px solid ${theme.controlBorder}`, margin: "4px 0" }} />
-          <div style={sectionStyle}>Import from file</div>
+          <div style={sectionStyle}>从文件导入</div>
           {DIALECTS.map((d) => (
             <button
               key={d.id}

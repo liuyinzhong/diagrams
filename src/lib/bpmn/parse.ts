@@ -93,7 +93,7 @@ export function parseBpmn(input: string): BpmnParseResult {
     }
 
     if (!error) {
-      error = { message: `Unrecognized line: "${line}"`, line: i + 1 };
+      error = { message: `无法识别的行： "${line}"`, line: i + 1 };
     }
   }
 

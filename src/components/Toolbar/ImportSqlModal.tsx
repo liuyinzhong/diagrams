@@ -64,7 +64,7 @@ export function ImportSqlModal({ onImport, onClose }: ImportSqlModalProps) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontWeight: "bold", color: theme.toolbarText, fontSize: 14 }}>
-            Import SQL
+            导入 SQL
           </span>
           <div style={{ flex: 1 }} />
           <select
@@ -90,7 +90,7 @@ export function ImportSqlModal({ onImport, onClose }: ImportSqlModalProps) {
         <textarea
           value={sql}
           onChange={(e) => setSql(e.target.value)}
-          placeholder="Paste your CREATE TABLE statements here…"
+          placeholder="在此粘贴 CREATE TABLE 语句…"
           autoFocus
           spellCheck={false}
           style={{
@@ -109,7 +109,7 @@ export function ImportSqlModal({ onImport, onClose }: ImportSqlModalProps) {
         />
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
           <button onClick={onClose} style={btnStyle}>
-            Cancel
+            取消
           </button>
           <button
             onClick={() => onImport(sql, dialect)}
@@ -122,7 +122,7 @@ export function ImportSqlModal({ onImport, onClose }: ImportSqlModalProps) {
               cursor: sql.trim() ? "pointer" : "not-allowed",
             }}
           >
-            Import
+            导入
           </button>
         </div>
       </div>

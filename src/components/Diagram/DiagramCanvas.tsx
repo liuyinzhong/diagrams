@@ -27,7 +27,7 @@ interface HoverInfo {
 interface DiagramCanvasProps {
   schema: SchemaIR;
   layout: LayoutResult;
-  rankdir: "LR" | "TB";
+  rankdir: "LR" | "RL" | "TB";
   onToggleRankdir: () => void;
   detailLevel: DetailLevel;
   onToggleDetailLevel: () => void;

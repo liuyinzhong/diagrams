@@ -13,9 +13,9 @@ interface TabBarProps {
 }
 
 function tabName(doc: Doc): string {
-  if (!doc.filePath) return "Untitled";
+  if (!doc.filePath) return "未命名";
   // Split on both separators — Windows paths use backslashes.
-  return doc.filePath.split(/[\\/]/).pop() ?? "Untitled";
+  return doc.filePath.split(/[\\/]/).pop() ?? "未命名";
 }
 
 export function TabBar({ docs, activeId, onSelect, onClose, onNew }: TabBarProps) {
@@ -67,14 +67,14 @@ export function TabBar({ docs, activeId, onSelect, onClose, onNew }: TabBarProps
               whiteSpace: "nowrap",
               maxWidth: 200,
             }}
-            title={doc.filePath ?? "Untitled"}
+            title={doc.filePath ?? "未命名"}
           >
             <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>
               {tabName(doc)}
             </span>
             {doc.isDirty && (
               <span
-                aria-label="unsaved changes"
+                aria-label="未保存的更改"
                 style={{
                   width: 6,
                   height: 6,
@@ -98,8 +98,8 @@ export function TabBar({ docs, activeId, onSelect, onClose, onNew }: TabBarProps
                 alignItems: "center",
                 padding: "0 2px",
               }}
-              title="Close (Cmd+W)"
-              aria-label="Close tab"
+              title="关闭（Ctrl/Cmd+W）"
+              aria-label="关闭标签页"
             >
               <IconClose size={14} />
             </button>
@@ -119,8 +119,8 @@ export function TabBar({ docs, activeId, onSelect, onClose, onNew }: TabBarProps
             alignItems: "center",
             padding: "0 12px",
           }}
-          title="New tab (Cmd+T)"
-          aria-label="New tab"
+          title="新建标签页（Ctrl/Cmd+T）"
+          aria-label="新建标签页"
         >
           <IconPlus size={16} />
         </button>
@@ -162,7 +162,7 @@ export function TabBar({ docs, activeId, onSelect, onClose, onNew }: TabBarProps
                 onMouseEnter={(e) => ((e.target as HTMLElement).style.backgroundColor = theme.controlHoverBg)}
                 onMouseLeave={(e) => ((e.target as HTMLElement).style.backgroundColor = "transparent")}
               >
-                New {DIAGRAM_TYPES[t].label}
+                新建 {DIAGRAM_TYPES[t].label}
               </button>
             ))}
           </div>

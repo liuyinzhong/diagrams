@@ -11,6 +11,7 @@ import {
   IconSave,
   IconSaveAs,
   IconAutosave,
+  IconSidebar,
 } from "../icons";
 
 interface ToolbarProps {
@@ -23,6 +24,8 @@ interface ToolbarProps {
   autosave: boolean;
   isSaving: boolean;
   showSqlActions: boolean;
+  explorerVisible: boolean;
+  onToggleExplorer: () => void;
   onOpen: () => void;
   onOpenRecent: (path: string) => void;
   onToggleAutosave: () => void;
@@ -46,6 +49,8 @@ export function Toolbar({
   autosave,
   isSaving,
   showSqlActions,
+  explorerVisible,
+  onToggleExplorer,
   onOpen,
   onOpenRecent,
   onToggleAutosave,
@@ -60,7 +65,7 @@ export function Toolbar({
 }: ToolbarProps) {
   const { theme, themeId, toggleTheme } = useTheme();
 
-  const fileName = filePath ? basename(filePath) : "Untitled";
+  const fileName = filePath ? basename(filePath) : "未命名";
 
   const iconBtnStyle: React.CSSProperties = {
     background: theme.controlBg,
@@ -106,6 +111,10 @@ export function Toolbar({
         flexShrink: 0,
       }}
     >
+      <button onClick={onToggleExplorer} style={iconBtnStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff}
+        title={explorerVisible ? "收起资源管理器" : "展开资源管理器"} aria-label={explorerVisible ? "收起资源管理器" : "展开资源管理器"} aria-expanded={explorerVisible}>
+        <IconSidebar />
+      </button>
       {/* Brand: registration/crosshair mark — drafting vernacular for "align here". */}
       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
         <RegistrationMark color={theme.toolbarAccent} />
@@ -126,8 +135,8 @@ export function Toolbar({
         {fileName}
         {isDirty && (
           <span
-            aria-label="unsaved changes"
-            title="Unsaved changes"
+            aria-label="未保存的更改"
+            title="未保存的更改"
             style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: theme.toolbarAccent }}
           />
         )}
@@ -138,10 +147,10 @@ export function Toolbar({
       <div style={{ flex: 1 }} />
 
       {isSaving && (
-        <span className="instrument-label" style={{ color: theme.toolbarTextMuted }}>saving…</span>
+        <span className="instrument-label" style={{ color: theme.toolbarTextMuted }}>正在保存…</span>
       )}
       {isLoading && (
-        <span className="instrument-label" style={{ color: theme.warningText }}>parsing…</span>
+        <span className="instrument-label" style={{ color: theme.warningText }}>正在解析…</span>
       )}
       {parseError && (
         <span
@@ -178,19 +187,19 @@ export function Toolbar({
           style={iconBtnStyle}
           onMouseEnter={hoverOn}
           onMouseLeave={hoverOff}
-          title={`Switch to ${themeId === "dark" ? "light" : "dark"} mode`}
-          aria-label="Toggle theme"
+          title={`切换到${themeId === "dark" ? "浅色" : "深色"}模式`}
+          aria-label="切换主题"
         >
           {themeId === "dark" ? <IconSun /> : <IconMoon />}
         </button>
-        <button onClick={onOpen} style={iconBtnStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} title="Open (Cmd+O)" aria-label="Open file">
+        <button onClick={onOpen} style={iconBtnStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} title="打开（Ctrl/Cmd+O）" aria-label="打开文件">
           <IconFolderOpen />
         </button>
         <RecentMenu files={recentFiles} onOpenRecent={onOpenRecent} />
-        <button onClick={onSave} style={iconBtnStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} title="Save (Cmd+S)" aria-label="Save">
+        <button onClick={onSave} style={iconBtnStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} title="保存（Ctrl/Cmd+S）" aria-label="保存">
           <IconSave />
         </button>
-        <button onClick={onSaveAs} style={iconBtnStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} title="Save As (Cmd+Shift+S)" aria-label="Save As">
+        <button onClick={onSaveAs} style={iconBtnStyle} onMouseEnter={hoverOn} onMouseLeave={hoverOff} title="另存为（Ctrl/Cmd+Shift+S）" aria-label="另存为">
           <IconSaveAs />
         </button>
         <button
@@ -201,8 +210,8 @@ export function Toolbar({
           }}
           onMouseEnter={hoverOn}
           onMouseLeave={hoverOff}
-          title={`Autosave ${autosave ? "on" : "off"} (saved files only)`}
-          aria-label="Toggle autosave"
+          title={`自动保存${autosave ? "已开启" : "已关闭"}（仅限已保存的文件）`}
+          aria-label="切换自动保存"
         >
           <IconAutosave />
         </button>

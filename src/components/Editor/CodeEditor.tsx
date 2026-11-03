@@ -111,6 +111,7 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
   function CodeEditor({ initialValue, onChange, onCursorChange, languageExtensions, syncValue, diagnostic }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const viewRef = useRef<EditorView | null>(null);
+    const syncingRef = useRef(false);
     const onChangeRef = useRef(onChange);
     onChangeRef.current = onChange;
     const onCursorChangeRef = useRef(onCursorChange);
@@ -139,6 +140,17 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       const state = EditorState.create({
         doc: initialValue,
         extensions: [
+          EditorState.phrases.of({
+            "Find": "查找", "Replace": "替换", "next": "下一个", "previous": "上一个",
+            "all": "全选", "match case": "区分大小写", "regexp": "正则表达式",
+            "by word": "全字匹配", "replace": "替换", "replace all": "全部替换",
+            "close": "关闭", "Go to line": "跳转到行", "go": "跳转",
+            "current match": "当前匹配", "on line": "所在行",
+            "replaced match on line $": "已替换第 $ 行的匹配项",
+            "replaced $ matches": "已替换 $ 个匹配项",
+            "Fold line": "折叠行", "Unfold line": "展开行",
+            "Control character": "控制字符", "Selection deleted": "已删除选中内容",
+          }),
           lineNumbers(),
           history(),
           drawSelection(),
@@ -159,7 +171,7 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
           themeCompartment.current.of(buildEditorTheme(theme)),
           syntaxCompartment.current.of(buildSyntaxTheme(theme)),
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
+            if (update.docChanged && !syncingRef.current) {
               onChangeRef.current(update.state.doc.toString());
             }
             if (update.selectionSet) {
@@ -194,7 +206,12 @@ export const CodeEditor = forwardRef<CodeEditorHandle, CodeEditorProps>(
       if (!view || syncValue === undefined) return;
       const current = view.state.doc.toString();
       if (syncValue !== current) {
-        view.dispatch({ changes: { from: 0, to: current.length, insert: syncValue } });
+        syncingRef.current = true;
+        try {
+          view.dispatch({ changes: { from: 0, to: current.length, insert: syncValue } });
+        } finally {
+          syncingRef.current = false;
+        }
       }
     }, [syncValue]);
 

@@ -49,8 +49,8 @@ export function ExportMenu({ showSql, onExportSql, onExportSvg, onExportPng, onE
     <div ref={menuRef} style={{ position: "relative" }}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        title="Export SQL / image"
-        aria-label="Export"
+        title="导出 SQL / 图片"
+        aria-label="导出"
         style={{
           background: theme.controlBg,
           border: `1px solid ${theme.controlBorder}`,
@@ -84,7 +84,7 @@ export function ExportMenu({ showSql, onExportSql, onExportSvg, onExportPng, onE
           {showSql && (
             <>
               <div style={{ padding: "4px 12px", fontSize: 10, color: theme.toolbarTextMuted, textTransform: "uppercase", letterSpacing: 1, fontFamily: "var(--font-mono)" }}>
-                Export SQL
+                导出 SQL
               </div>
               {DIALECTS.map((d) => (
                 <button
@@ -112,7 +112,7 @@ export function ExportMenu({ showSql, onExportSql, onExportSvg, onExportPng, onE
             </>
           )}
           <div style={{ padding: "4px 12px", fontSize: 10, color: theme.toolbarTextMuted, textTransform: "uppercase", letterSpacing: 1, fontFamily: "var(--font-mono)" }}>
-            Export Image
+            导出图片
           </div>
           {IMAGE_FORMATS.map((f) => (
             <button

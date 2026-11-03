@@ -11,6 +11,8 @@ export interface Doc {
   editorKey: number;
   // Restored clean doc whose content must still be read from disk.
   needsLoad?: boolean;
+  diskContent?: string | null;
+  externalContent?: string | null;
 }
 
 export interface UseDocumentsResult {
@@ -25,6 +27,8 @@ export interface UseDocumentsResult {
   replaceContent: (id: string, content: string) => void;
   markSaved: (id: string, filePath: string, savedContent: string) => void;
   hydrateDoc: (id: string, content: string) => void;
+  reconcileDisk: (id: string, path: string, content: string, observedBaseline: string | null | undefined) => void;
+  resolveExternal: (id: string, reload: boolean) => void;
 }
 
 function bootstrap(initialContent: string): { docs: Doc[]; activeId: string } {
@@ -39,6 +43,7 @@ function bootstrap(initialContent: string): { docs: Doc[]; activeId: string } {
       editorKey: 0,
       // Clean, file-backed docs were saved without content → load from disk.
       needsLoad: pd.content === undefined && pd.filePath != null,
+      diskContent: pd.diskContent ?? null,
     }));
     const activeId = docs.some((d) => d.id === session.activeId)
       ? session.activeId
@@ -96,6 +101,7 @@ export function useDocuments(initialContent: string): UseDocumentsResult {
           id,
           filePath,
           content,
+          diskContent: content,
           type: detectType(filePath, content),
           isDirty: false,
           editorKey: 0,
@@ -156,7 +162,7 @@ export function useDocuments(initialContent: string): UseDocumentsResult {
     setDocs((prev) =>
       prev.map((d) =>
         d.id === id
-          ? { ...d, filePath, isDirty: d.content !== savedContent ? d.isDirty : false }
+          ? { ...d, filePath, diskContent: savedContent, externalContent: undefined, isDirty: d.content !== savedContent ? d.isDirty : false }
           : d
       )
     );
@@ -167,10 +173,32 @@ export function useDocuments(initialContent: string): UseDocumentsResult {
     setDocs((prev) =>
       prev.map((d) =>
         d.id === id
-          ? { ...d, content, isDirty: false, needsLoad: false, editorKey: d.editorKey + 1 }
+          ? { ...d, content, diskContent: content, externalContent: undefined, isDirty: false, needsLoad: false, editorKey: d.editorKey + 1 }
           : d
       )
     );
+  }, []);
+
+  const reconcileDisk = useCallback((id: string, path: string, content: string, observedBaseline: string | null | undefined) => {
+    setDocs((prev) => prev.map((d) => {
+      if (d.id !== id || d.filePath !== path || d.needsLoad || d.diskContent !== observedBaseline) return d;
+      if (d.isDirty) {
+        if (content === d.content) return { ...d, diskContent: content, externalContent: undefined, isDirty: false };
+        if (content === d.diskContent) return d.externalContent === undefined ? d : { ...d, externalContent: undefined };
+        return d.externalContent === content ? d : { ...d, externalContent: content };
+      }
+      if (content === d.content) return d.diskContent === content ? d : { ...d, diskContent: content };
+      return { ...d, content, diskContent: content, externalContent: undefined };
+    }));
+  }, []);
+
+  const resolveExternal = useCallback((id: string, reload: boolean) => {
+    setDocs((prev) => prev.map((d) => {
+      if (d.id !== id || d.externalContent == null) return d;
+      return reload
+        ? { ...d, content: d.externalContent, diskContent: d.externalContent, externalContent: undefined, isDirty: false }
+        : { ...d, diskContent: d.externalContent, externalContent: undefined };
+    }));
   }, []);
 
   return {
@@ -185,5 +213,7 @@ export function useDocuments(initialContent: string): UseDocumentsResult {
     replaceContent,
     markSaved,
     hydrateDoc,
+    reconcileDisk,
+    resolveExternal,
   };
 }

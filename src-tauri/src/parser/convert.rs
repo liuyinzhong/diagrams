@@ -180,7 +180,10 @@ fn convert_table(table: &ast::TableBlock) -> TableIR {
         alias: table.ident.alias.as_ref().map(|a| a.to_string.clone()),
         columns,
         indexes,
-        note: table.note.as_ref().map(|n| n.value.raw.clone()),
+        note: table.settings.as_ref()
+            .and_then(|s| s.attributes.iter().find(|a| a.key.to_string.eq_ignore_ascii_case("note")))
+            .and_then(|a| a.value.as_ref().map(|v| v.value.to_string()))
+            .or_else(|| table.note.as_ref().map(|n| n.value.raw.clone())),
         header_color,
         span_range: (table.span_range.start, table.span_range.end),
     }
@@ -366,6 +369,13 @@ fn value_to_string(v: &ast::Value) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_table_header_note() {
+        let ast = dbml_rs::parse_dbml("Table dev_bug [note: '缺陷bug表'] {\n id int\n}").expect("parse failed");
+        let ir = convert_schema(&ast);
+        assert_eq!(ir.tables[0].note.as_deref(), Some("缺陷bug表"));
+    }
 
     #[test]
     fn test_convert_basic_table() {

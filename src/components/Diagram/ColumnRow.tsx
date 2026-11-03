@@ -8,15 +8,21 @@ interface ColumnRowProps {
   index: number;
   y: number;
   isFk: boolean;
+  onHover?: (columnName: string | null, x: number, y: number) => void;
 }
 
-export const ColumnRow = memo(function ColumnRow({ column, index, y, isFk }: ColumnRowProps) {
+export const ColumnRow = memo(function ColumnRow({ column, index, y, isFk, onHover }: ColumnRowProps) {
   const { theme } = useTheme();
   const rowY = y + index * ROW_HEIGHT;
   const textY = rowY + ROW_HEIGHT / 2;
 
   return (
-    <g>
+    <g
+      onMouseEnter={(e) => onHover?.(column.name, e.clientX, e.clientY)}
+      onMouseMove={(e) => onHover?.(column.name, e.clientX, e.clientY)}
+      onMouseLeave={(e) => onHover?.(null, e.clientX, e.clientY)}
+    >
+      <rect x={0} y={rowY} width={TABLE_WIDTH} height={ROW_HEIGHT} fill="transparent" />
       {index > 0 && (
         <line
           x1={0}

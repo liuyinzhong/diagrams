@@ -52,7 +52,7 @@ export function useDbmlParser(content: string): UseDbmlParserResult {
     if (!isTauri()) {
       setSchema(null);
       setParseError({
-        message: "DBML preview runs in the desktop app.",
+        message: "DBML 预览需要在桌面应用中运行。",
         span: null,
       });
       setIsLoading(false);
@@ -78,7 +78,7 @@ export function useDbmlParser(content: string): UseDbmlParserResult {
       if (requestId !== requestIdRef.current) return;
       const message = e instanceof Error ? e.message : String(e);
       setParseError({
-        message: `IPC error: ${message}`,
+        message: `与桌面应用通信失败： ${message}`,
         span: null,
       });
     } finally {

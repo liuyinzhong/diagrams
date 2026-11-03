@@ -16,6 +16,7 @@ export interface PersistedDoc {
   type?: DiagramType;
   isDirty: boolean;
   content?: string;
+  diskContent?: string | null;
 }
 
 export interface PersistedSession {
@@ -47,6 +48,7 @@ export function saveSession(docs: Doc[], activeId: string): void {
     filePath: d.filePath,
     type: d.type,
     isDirty: d.isDirty,
+    ...(d.isDirty && d.filePath ? { diskContent: d.diskContent ?? null } : {}),
     // Keep content only when it cannot be re-read from disk.
     ...(d.isDirty || d.filePath == null ? { content: d.content } : {}),
   }));

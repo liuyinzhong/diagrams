@@ -87,7 +87,7 @@ export const DIAGRAM_TYPES: Record<DiagramType, DiagramTypeInfo> = {
   // Registered in later phases:
   sequence: {
     id: "sequence",
-    label: "Sequence",
+    label: "时序图",
     fileExts: ["seq"],
     defaultExt: "seq",
     defaultContent: `sequenceDiagram
@@ -140,7 +140,7 @@ ship -> done
   },
   architecture: {
     id: "architecture",
-    label: "Architecture",
+    label: "架构图",
     fileExts: ["arch"],
     defaultExt: "arch",
     defaultContent: `# Architecture diagram. Node kinds (cloud/infra + C4):

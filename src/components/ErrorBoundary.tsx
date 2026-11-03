@@ -45,7 +45,7 @@ export class ErrorBoundary extends Component<Props, State> {
             whiteSpace: "pre-wrap",
           }}
         >
-          <strong>Render error:</strong>
+          <strong>渲染错误：</strong>
           {"\n\n"}
           {this.state.error.message}
           {"\n\n"}

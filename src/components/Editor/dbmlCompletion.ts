@@ -2,13 +2,13 @@ import type { CompletionContext, CompletionResult, Completion } from "@codemirro
 import type { SchemaIR } from "../../types/schema";
 
 const TOP_LEVEL_KEYWORDS: Completion[] = [
-  { label: "Table", type: "keyword", detail: "define a table" },
-  { label: "TablePartial", type: "keyword", detail: "reusable column set" },
-  { label: "Ref", type: "keyword", detail: "define a relationship" },
-  { label: "Enum", type: "keyword", detail: "define an enum" },
-  { label: "TableGroup", type: "keyword", detail: "group tables" },
-  { label: "Project", type: "keyword", detail: "project settings" },
-  { label: "Note", type: "keyword", detail: "standalone note" },
+  { label: "Table", type: "keyword", detail: "定义数据表" },
+  { label: "TablePartial", type: "keyword", detail: "可复用的字段集合" },
+  { label: "Ref", type: "keyword", detail: "定义关系" },
+  { label: "Enum", type: "keyword", detail: "定义枚举" },
+  { label: "TableGroup", type: "keyword", detail: "对数据表分组" },
+  { label: "Project", type: "keyword", detail: "项目设置" },
+  { label: "Note", type: "keyword", detail: "独立备注" },
 ];
 
 const COLUMN_TYPES: Completion[] = [
@@ -21,16 +21,16 @@ const COLUMN_TYPES: Completion[] = [
 ].map((t) => ({ label: t, type: "type" }));
 
 const SETTINGS_KEYWORDS: Completion[] = [
-  { label: "pk", type: "keyword", detail: "primary key" },
+  { label: "pk", type: "keyword", detail: "主键" },
   { label: "primary key", type: "keyword" },
-  { label: "increment", type: "keyword", detail: "auto increment" },
+  { label: "increment", type: "keyword", detail: "自动递增" },
   { label: "unique", type: "keyword" },
   { label: "not null", type: "keyword" },
   { label: "null", type: "keyword" },
-  { label: "default:", type: "keyword", detail: "default value" },
-  { label: "ref:", type: "keyword", detail: "inline reference" },
-  { label: "note:", type: "keyword", detail: "column note" },
-  { label: "check:", type: "keyword", detail: "check constraint" },
+  { label: "default:", type: "keyword", detail: "默认值" },
+  { label: "ref:", type: "keyword", detail: "行内引用" },
+  { label: "note:", type: "keyword", detail: "字段备注" },
+  { label: "check:", type: "keyword", detail: "检查约束" },
 ];
 
 export function createDbmlCompletion(

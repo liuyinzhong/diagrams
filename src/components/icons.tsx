@@ -48,6 +48,15 @@ export function IconFolderOpen(p: IconProps) {
   );
 }
 
+export function IconSidebar(p: IconProps) {
+  return (
+    <Svg {...p}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M9 4v16" />
+    </Svg>
+  );
+}
+
 export function IconClock(p: IconProps) {
   return (
     <Svg {...p}>

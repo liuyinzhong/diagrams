@@ -82,6 +82,17 @@ describe("buildFkIndex", () => {
 });
 
 describe("recomputeEdges", () => {
+  it("lays related tables from right to left and anchors the edge to facing sides", () => {
+    const source = table("source", ["id", "target_id"]);
+    const target = table("target", ["id"]);
+    const schema: SchemaIR = { tables: [source, target], refs: [ref("source", "target_id", "target", "id")], enums: [], tableGroups: [], notes: [], project: null };
+    const layout = computeLayout(schema, { rankdir: "RL", detailLevel: "full" });
+    const from = layout.nodes.get("source")!;
+    const to = layout.nodes.get("target")!;
+    expect(from.x).toBeGreaterThan(to.x + to.width);
+    expect(layout.edges[0].points[0].x).toBe(from.x);
+    expect(layout.edges[0].points.at(-1)!.x).toBe(to.x + to.width);
+  });
   it("produces one edge per resolvable ref, anchored on node borders", () => {
     const schema = schemaFixture();
     const layout = computeLayout(schema, { rankdir: "LR", detailLevel: "full" });

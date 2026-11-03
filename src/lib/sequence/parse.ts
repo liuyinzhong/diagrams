@@ -120,7 +120,7 @@ export function parseSequence(input: string): SequenceParseResult {
       continue;
     }
 
-    if (!error) error = { message: `Unrecognized line: "${line}"`, line: i + 1 };
+    if (!error) error = { message: `无法识别的行： "${line}"`, line: i + 1 };
   }
 
   const ir: SequenceIR = { participants, events };

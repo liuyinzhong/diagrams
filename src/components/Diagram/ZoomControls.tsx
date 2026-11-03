@@ -9,7 +9,7 @@ interface ZoomControlsProps {
   onZoomOut: () => void;
   onFitToScreen: () => void;
   // DBML-specific controls (optional so other diagram types can reuse zoom/fit).
-  rankdir?: "LR" | "TB";
+  rankdir?: "LR" | "RL" | "TB";
   onToggleRankdir?: () => void;
   detailLevel?: DetailLevel;
   onToggleDetailLevel?: () => void;
@@ -39,9 +39,9 @@ function ZoomLabel({ store, color }: { store: TransformStore; color: string }) {
 }
 
 const DETAIL_LABELS: Record<DetailLevel, string> = {
-  full: "All",
-  "keys-only": "Keys",
-  "name-only": "Name",
+  full: "全部",
+  "keys-only": "键",
+  "name-only": "名称",
 };
 
 export function ZoomControls({
@@ -98,7 +98,7 @@ export function ZoomControls({
       <button
         onClick={onFitToScreen}
         style={btnStyle}
-        title="Fit to screen"
+        title="适应屏幕"
         onMouseEnter={(e) => hover(e, true)}
         onMouseLeave={(e) => hover(e, false)}
       >
@@ -107,7 +107,7 @@ export function ZoomControls({
       <button
         onClick={onZoomOut}
         style={btnStyle}
-        title="Zoom out"
+        title="缩小"
         onMouseEnter={(e) => hover(e, true)}
         onMouseLeave={(e) => hover(e, false)}
       >
@@ -117,7 +117,7 @@ export function ZoomControls({
       <button
         onClick={onZoomIn}
         style={btnStyle}
-        title="Zoom in"
+        title="放大"
         onMouseEnter={(e) => hover(e, true)}
         onMouseLeave={(e) => hover(e, false)}
       >
@@ -129,7 +129,7 @@ export function ZoomControls({
           <button
             onClick={onToggleRankdir}
             style={{ ...btnStyle, width: "auto", padding: "0 6px", fontSize: 10 }}
-            title={`Layout: ${rankdir === "LR" ? "Left to Right" : "Top to Bottom"}`}
+            title={`布局：${rankdir === "LR" ? "从左到右" : rankdir === "RL" ? "从右到左" : "从上到下"}`}
             onMouseEnter={(e) => hover(e, true)}
             onMouseLeave={(e) => hover(e, false)}
           >
@@ -141,7 +141,7 @@ export function ZoomControls({
         <button
           onClick={onToggleDetailLevel}
           style={{ ...btnStyle, width: "auto", padding: "0 6px", fontSize: 10 }}
-          title={`Detail: ${DETAIL_LABELS[detailLevel]}`}
+          title={`显示详情：${DETAIL_LABELS[detailLevel]}`}
           onMouseEnter={(e) => hover(e, true)}
           onMouseLeave={(e) => hover(e, false)}
         >
@@ -152,11 +152,11 @@ export function ZoomControls({
         <button
           onClick={onResetLayout}
           style={{ ...btnStyle, width: "auto", padding: "0 6px", fontSize: 10 }}
-          title="Reset layout (undo manual positioning)"
+          title="重置布局（撤销手动定位）"
           onMouseEnter={(e) => hover(e, true)}
           onMouseLeave={(e) => hover(e, false)}
         >
-          Reset
+          重置
         </button>
       )}
     </div>

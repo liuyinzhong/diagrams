@@ -10,7 +10,7 @@ interface UseFileOperationsResult {
   openFile: () => Promise<{ content: string; path: string } | null>;
   readFile: (path: string) => Promise<string | null>;
   openSqlFile: () => Promise<string | null>;
-  saveFile: (content: string, path: string | null) => Promise<string | null>;
+  saveFile: (content: string, path: string | null, expectedContent?: string | null) => Promise<string | null>;
   exportSql: (sql: string, dialect: string) => Promise<void>;
   importSql: (sql: string, dialect: string) => Promise<string>;
 }
@@ -22,7 +22,7 @@ export function useFileOperations(): UseFileOperationsResult {
       return result ? { content: result.content, path: result.path } : null;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Failed to open file: ${msg}`, { cause: e });
+      throw new Error(`打开文件失败： ${msg}`, { cause: e });
     }
   }, []);
 
@@ -31,16 +31,16 @@ export function useFileOperations(): UseFileOperationsResult {
       return await invoke<string>("read_file", { path });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Failed to read file: ${msg}`, { cause: e });
+      throw new Error(`读取文件失败： ${msg}`, { cause: e });
     }
   }, []);
 
-  const saveFile = useCallback(async (content: string, path: string | null) => {
+  const saveFile = useCallback(async (content: string, path: string | null, expectedContent?: string | null) => {
     try {
-      return await invoke<string | null>("save_file", { content, path });
+      return await invoke<string | null>("save_file", { content, path, expectedContent: expectedContent ?? null });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Failed to save: ${msg}`, { cause: e });
+      throw new Error(`保存失败： ${msg}`, { cause: e });
     }
   }, []);
 
@@ -50,7 +50,7 @@ export function useFileOperations(): UseFileOperationsResult {
       return result ? result.content : null;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Failed to open SQL file: ${msg}`, { cause: e });
+      throw new Error(`打开 SQL 文件失败： ${msg}`, { cause: e });
     }
   }, []);
 
@@ -59,7 +59,7 @@ export function useFileOperations(): UseFileOperationsResult {
       await invoke<string | null>("export_sql_file", { sql, dialect });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Failed to export SQL: ${msg}`, { cause: e });
+      throw new Error(`导出 SQL 失败： ${msg}`, { cause: e });
     }
   }, []);
 
@@ -68,7 +68,7 @@ export function useFileOperations(): UseFileOperationsResult {
       return await invoke<string>("import_sql", { input: sql, dialect });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      throw new Error(`Failed to import SQL: ${msg}`, { cause: e });
+      throw new Error(`导入 SQL 失败： ${msg}`, { cause: e });
     }
   }, []);
 

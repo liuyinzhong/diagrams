@@ -27,7 +27,7 @@ export function RecentMenu({ files, onOpenRecent }: RecentMenuProps) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={files.length === 0}
-        aria-label="Open recent files"
+        aria-label="打开最近的文件"
         style={{
           background: theme.controlBg,
           border: `1px solid ${theme.controlBorder}`,
@@ -40,7 +40,7 @@ export function RecentMenu({ files, onOpenRecent }: RecentMenuProps) {
           alignItems: "center",
           justifyContent: "center",
         }}
-        title="Open recent files"
+        title="打开最近的文件"
       >
         <IconClock />
       </button>

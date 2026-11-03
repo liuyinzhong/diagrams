@@ -85,7 +85,7 @@ export function SearchBar({
             handleSelect(matches[0].name);
           }
         }}
-        placeholder="Search tables... (Cmd+P)"
+        placeholder="搜索数据表…（Ctrl/Cmd+P）"
         style={{
           width: "100%",
           backgroundColor: theme.editorBg,

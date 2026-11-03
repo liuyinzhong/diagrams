@@ -6,7 +6,24 @@ const RANKDIR_KEY = "diagrams-rankdir";
 const DETAIL_KEY = "diagrams-detail";
 const RECENT_KEY = "diagrams-recent";
 const AUTOSAVE_KEY = "diagrams-autosave";
+const EXPLORER_ROOT_KEY = "diagrams-explorer-root";
 const MAX_RECENT = 10;
+
+export function loadExplorerRoot(): string | null {
+  try {
+    return localStorage.getItem(EXPLORER_ROOT_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveExplorerRoot(path: string): void {
+  try {
+    localStorage.setItem(EXPLORER_ROOT_KEY, path);
+  } catch {
+    // The current selection remains usable even when local storage is unavailable.
+  }
+}
 
 export function loadAutosave(): boolean {
   try {
@@ -24,17 +41,17 @@ export function saveAutosave(enabled: boolean): void {
   }
 }
 
-export function loadRankdir(): "LR" | "TB" {
+export function loadRankdir(): "LR" | "RL" | "TB" {
   try {
     const v = localStorage.getItem(RANKDIR_KEY);
-    if (v === "LR" || v === "TB") return v;
+    if (v === "LR" || v === "RL" || v === "TB") return v;
   } catch {
     // ignore
   }
   return "LR";
 }
 
-export function saveRankdir(value: "LR" | "TB"): void {
+export function saveRankdir(value: "LR" | "RL" | "TB"): void {
   try {
     localStorage.setItem(RANKDIR_KEY, value);
   } catch {

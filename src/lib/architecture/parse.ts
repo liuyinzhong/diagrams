@@ -99,7 +99,7 @@ export function parseArchitecture(input: string): ArchParseResult {
     }
 
     if (!error) {
-      error = { message: `Unrecognized line: "${line}"`, line: i + 1 };
+      error = { message: `无法识别的行： "${line}"`, line: i + 1 };
     }
   }
 

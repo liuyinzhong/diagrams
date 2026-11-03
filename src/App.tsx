@@ -8,6 +8,7 @@ import { findTableAtOffset } from "./lib/findTableAtOffset";
 import { utf16ToUtf8Offset, utf8ToUtf16Offset } from "./lib/textOffsets";
 import { basename } from "./lib/paths";
 import { DiagramView } from "./components/DiagramView";
+import { FileExplorer } from "./components/FileExplorer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { defaultContentFor, DIAGRAM_TYPES } from "./lib/diagramTypes";
 import { parseSequence } from "./lib/sequence/parse";
@@ -48,19 +49,21 @@ function App() {
   const { activeDoc, activeId } = docs;
   const content = activeDoc.content;
 
-  const [rankdir, setRankdir] = useState<"LR" | "TB">(loadRankdir);
+  const [rankdir, setRankdir] = useState<"LR" | "RL" | "TB">(loadRankdir);
   const [detailLevel, setDetailLevel] = useState<DetailLevel>(loadDetailLevel);
   const [highlightedTable, setHighlightedTable] = useState<string | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [recentFiles, setRecentFiles] = useState<string[]>(loadRecentFiles);
   const [autosave, setAutosave] = useState<boolean>(loadAutosave);
   const [isSaving, setIsSaving] = useState(false);
+  const [explorerVisible, setExplorerVisible] = useState(true);
   const [confirm, setConfirm] = useState<{
     title: string;
     message: string;
     buttons: ConfirmButton[];
   } | null>(null);
   const editorRef = useRef<CodeEditorHandle>(null);
+  const workspaceRef = useRef<HTMLDivElement>(null);
   const cursorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Only DBML uses the Rust parser; other types render client-side.
   const isDbml = activeDoc.type === "dbml";
@@ -169,15 +172,35 @@ function App() {
       } catch {
         // The file was moved or deleted: drop it from the recents list.
         setRecentFiles(removeRecentFile(path));
-        alert(`File no longer available — removed from Recent:\n${path}`);
+        alert(`文件已不可用，已从最近文件中移除：\n${path}`);
       }
     },
     [fileOps, docs, rememberRecent]
   );
 
+  const handleOpenExplorerFile = useCallback(async (path: string) => {
+    const existing = docs.docs.find((doc) => doc.filePath === path);
+    if (existing) { docs.setActive(existing.id); return; }
+    try {
+      const fileContent = await fileOps.readFile(path);
+      if (fileContent != null) {
+        docs.openDoc(path, fileContent);
+        rememberRecent(path);
+      }
+    } catch (error) {
+      alert(error instanceof Error ? error.message : String(error));
+    }
+  }, [docs, fileOps, rememberRecent]);
+
   const saveDoc = useCallback(
     async (doc: Doc): Promise<string | null> => {
-      const saved = await fileOps.saveFile(doc.content, doc.filePath);
+      let saved: string | null;
+      try {
+        saved = await fileOps.saveFile(doc.content, doc.filePath, doc.diskContent);
+      } catch (error) {
+        alert(error instanceof Error ? error.message.replace("FILE_CHANGED:", "") : String(error));
+        return null;
+      }
       if (saved) {
         docs.markSaved(doc.id, saved, doc.content);
         rememberRecent(saved);
@@ -205,13 +228,13 @@ function App() {
         docs.closeDoc(id);
         return;
       }
-      const label = doc.filePath ? basename(doc.filePath) : "Untitled";
+      const label = doc.filePath ? basename(doc.filePath) : "未命名";
       setConfirm({
-        title: "Unsaved changes",
-        message: `"${label}" has unsaved changes. Save before closing?`,
+        title: "未保存的更改",
+        message: `“${label}”有未保存的更改。关闭前保存吗？`,
         buttons: [
           {
-            label: "Save",
+            label: "保存",
             variant: "primary",
             onClick: async () => {
               setConfirm(null);
@@ -220,14 +243,14 @@ function App() {
             },
           },
           {
-            label: "Don't save",
+            label: "不保存",
             variant: "danger",
             onClick: () => {
               setConfirm(null);
               docs.closeDoc(id);
             },
           },
-          { label: "Cancel", onClick: () => setConfirm(null) },
+          { label: "取消", onClick: () => setConfirm(null) },
         ],
       });
     },
@@ -244,7 +267,7 @@ function App() {
         await fileOps.exportSql(sql, dialect);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
-        alert(`Export failed: ${msg}`);
+        alert(`导出失败：${msg}`);
       }
     },
     [fileOps, activeDoc.content]
@@ -255,7 +278,7 @@ function App() {
       exportSvg(diagramW, diagramH);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      alert(`Export failed: ${msg}`);
+      alert(`导出失败：${msg}`);
     }
   }, [diagramW, diagramH]);
 
@@ -264,7 +287,7 @@ function App() {
       await exportPng(diagramW, diagramH, theme.canvasBg);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      alert(`Export failed: ${msg}`);
+      alert(`导出失败：${msg}`);
     }
   }, [diagramW, diagramH, theme.canvasBg]);
 
@@ -273,7 +296,7 @@ function App() {
       await exportPdf(diagramW, diagramH, theme.canvasBg);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      alert(`Export failed: ${msg}`);
+      alert(`导出失败：${msg}`);
     }
   }, [diagramW, diagramH, theme.canvasBg]);
 
@@ -293,7 +316,7 @@ function App() {
         applyImportedDbml(dbml);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
-        alert(`Import failed: ${msg}`);
+        alert(`导入失败：${msg}`);
       }
     },
     [fileOps, applyImportedDbml]
@@ -307,7 +330,7 @@ function App() {
         setShowImportModal(false);
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
-        alert(`Import failed: ${msg}`);
+        alert(`导入失败：${msg}`);
       }
     },
     [fileOps, applyImportedDbml]
@@ -315,7 +338,7 @@ function App() {
 
   const toggleRankdir = useCallback(() => {
     setRankdir((prev) => {
-      const next = prev === "LR" ? "TB" : "LR";
+      const next = prev === "LR" ? "RL" : prev === "RL" ? "TB" : "LR";
       saveRankdir(next);
       return next;
     });
@@ -387,13 +410,13 @@ function App() {
     });
   }, []);
 
-  // Autosave: debounced write of dirty, file-backed docs. "Untitled" buffers have
+  // Autosave: debounced write of dirty, file-backed docs. "未命名" buffers have
   // no path so they're covered by session persistence instead.
   const autosaveInFlight = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!autosave) return;
     const pending = docs.docs.filter(
-      (d) => d.filePath && d.isDirty && !autosaveInFlight.current.has(d.id)
+      (d) => d.filePath && d.isDirty && d.diskContent != null && d.externalContent === undefined && !autosaveInFlight.current.has(d.id)
     );
     if (pending.length === 0) return;
     const t = setTimeout(async () => {
@@ -401,7 +424,7 @@ function App() {
       for (const d of pending) {
         autosaveInFlight.current.add(d.id);
         try {
-          await fileOps.saveFile(d.content, d.filePath!);
+          await fileOps.saveFile(d.content, d.filePath!, d.diskContent);
           docs.markSaved(d.id, d.filePath!, d.content);
         } catch {
           // Ignore autosave failures; manual save still surfaces errors.
@@ -413,6 +436,33 @@ function App() {
     }, 1500);
     return () => clearTimeout(t);
   }, [autosave, docs.docs, docs, fileOps]);
+
+  // Poll all file-backed tabs, including inactive ones. The state update checks
+  // the latest buffer again after each asynchronous disk read.
+  const monitoredDocsRef = useRef(docs.docs);
+  useEffect(() => { monitoredDocsRef.current = docs.docs; }, [docs.docs]);
+  useEffect(() => {
+    if (!isTauri()) return;
+    let cancelled = false;
+    let running = false;
+    const check = async () => {
+      if (running) return;
+      running = true;
+      try {
+        await Promise.all(monitoredDocsRef.current.filter((d) => d.filePath && !d.needsLoad && !autosaveInFlight.current.has(d.id)).map(async (d) => {
+          try {
+            const latest = await fileOps.readFile(d.filePath!);
+            if (!cancelled && latest != null && !autosaveInFlight.current.has(d.id)) docs.reconcileDisk(d.id, d.filePath!, latest, d.diskContent);
+          } catch {
+            // A file may be temporarily unavailable during an external save.
+          }
+        }));
+      } finally { running = false; }
+    };
+    void check();
+    const timer = setInterval(check, 1000);
+    return () => { cancelled = true; clearInterval(timer); };
+  }, [fileOps.readFile, docs.reconcileDisk]);
 
   // Persist the open tabs (debounced) so the session survives restarts.
   useEffect(() => {
@@ -441,11 +491,11 @@ function App() {
         if (dirty.length === 0) return; // nothing unsaved → allow close
         event.preventDefault();
         setConfirm({
-          title: "Unsaved changes",
-          message: `You have ${dirty.length} document(s) with unsaved changes.`,
+          title: "未保存的更改",
+          message: `有 ${dirty.length} 个文档包含未保存的更改。`,
           buttons: [
             {
-              label: "Save all",
+              label: "全部保存",
               variant: "primary",
               onClick: async () => {
                 for (const d of dirty) {
@@ -461,14 +511,14 @@ function App() {
               },
             },
             {
-              label: "Discard",
+              label: "放弃更改",
               variant: "danger",
               onClick: async () => {
                 setConfirm(null);
                 await win.destroy();
               },
             },
-            { label: "Cancel", onClick: () => setConfirm(null) },
+            { label: "取消", onClick: () => setConfirm(null) },
           ],
         });
       })
@@ -512,7 +562,9 @@ function App() {
   useEffect(() => {
     if (!isDraggingDivider) return;
     const handleMove = (e: MouseEvent) => {
-      const pct = (e.clientX / window.innerWidth) * 100;
+      const rect = workspaceRef.current?.getBoundingClientRect();
+      if (!rect || rect.width === 0) return;
+      const pct = ((e.clientX - rect.left) / rect.width) * 100;
       setDividerPos(Math.max(15, Math.min(85, pct)));
     };
     const handleUp = () => setIsDraggingDivider(false);
@@ -536,17 +588,19 @@ function App() {
       }}
     >
       <Toolbar
+        explorerVisible={explorerVisible}
+        onToggleExplorer={() => setExplorerVisible((visible) => !visible)}
         parseError={activeError}
         isLoading={isLoading || isDbmlLayouting || isArchLayouting}
         stats={
           isDbml && schema
-            ? `${schema.tables.length} tables, ${schema.refs.length} refs`
+            ? `${schema.tables.length} 张表，${schema.refs.length} 个关系`
             : activeDoc.type === "sequence" && seq
-              ? `${seq.layout.participants.length} participants, ${seq.layout.messages.length} messages`
+              ? `${seq.layout.participants.length} 个参与者，${seq.layout.messages.length} 条消息`
               : activeDoc.type === "bpmn" && bpmn
-                ? `${bpmn.layout.nodes.length} nodes, ${bpmn.layout.edges.length} flows`
+                ? `${bpmn.layout.nodes.length} 个节点，${bpmn.layout.edges.length} 条流程`
                 : activeDoc.type === "architecture" && arch?.layout
-                  ? `${arch.layout.nodes.length} nodes, ${arch.layout.edges.length} connections`
+                  ? `${arch.layout.nodes.length} 个节点，${arch.layout.edges.length} 条连接`
                   : DIAGRAM_TYPES[activeDoc.type].label
         }
         filePath={activeDoc.filePath}
@@ -574,7 +628,16 @@ function App() {
         onClose={requestCloseDoc}
         onNew={(type) => docs.newDoc(type, defaultContentFor(type))}
       />
+      {activeDoc.externalContent !== undefined && (
+        <div style={{ padding: "8px 14px", background: theme.toolbarBg, color: theme.toolbarText, display: "flex", alignItems: "center", gap: 12, fontSize: 12 }}>
+          <span>文件已在外部修改，本地也有未保存的更改。自动保存已暂停。</span>
+          <button onClick={() => docs.resolveExternal(activeId, true)}>加载外部版本（放弃本地更改）</button>
+          <button onClick={() => docs.resolveExternal(activeId, false)}>保留本地修改（自动保存开启时将覆盖文件）</button>
+        </div>
+      )}
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+        <FileExplorer activePath={activeDoc.filePath} onOpen={handleOpenExplorerFile} visible={explorerVisible} onClose={() => setExplorerVisible(false)} />
+        <div ref={workspaceRef} style={{ display: "flex", flex: 1, minWidth: 0, overflow: "hidden" }}>
         <div
           style={{
             width: `${dividerPos}%`,
@@ -602,7 +665,7 @@ function App() {
           onMouseDown={handleDividerMouseDown}
           role="separator"
           aria-orientation="vertical"
-          aria-label="Resize editor and canvas"
+          aria-label="调整编辑器和画布大小"
           style={{
             position: "relative",
             width: 9,
@@ -653,6 +716,7 @@ function App() {
             archLayout={arch?.layout ?? null}
           />
           </ErrorBoundary>
+        </div>
         </div>
       </div>
       {showImportModal && (

@@ -12,6 +12,28 @@ import {
 import { useTheme } from "../../context/ThemeContext";
 import { getVisibleColumns } from "../../lib/layoutEngine";
 
+function TableTitle({ table, color }: { table: TableIR; color: string }) {
+  const note = table.note?.replace(/\s+/g, " ").trim();
+  let visibleNote = "";
+  let width = 0;
+  if (note) {
+    for (const char of note) {
+      const nextWidth = width + (/[^\x00-\xff]/u.test(char) ? 2 : 1);
+      if (nextWidth > 35) { visibleNote += "…"; break; }
+      visibleNote += char;
+      width = nextWidth;
+    }
+  }
+  return (
+    <g>
+      <text x={TABLE_WIDTH / 2} y={note ? 11 : HEADER_HEIGHT / 2} dominantBaseline="central" textAnchor="middle" fill={color} fontSize={13} fontWeight="bold" fontFamily="monospace">
+        {table.schema ? `${table.schema}.${table.name}` : table.name}
+      </text>
+      {note && <text x={TABLE_WIDTH / 2} y={27} dominantBaseline="central" textAnchor="middle" fill={color} fontSize={10} fontFamily="monospace">{visibleNote}<title>{note}</title></text>}
+    </g>
+  );
+}
+
 interface TableNodeProps {
   table: TableIR;
   layout: LayoutNode;
@@ -76,18 +98,7 @@ export const TableNode = memo(function TableNode({
           ry={TABLE_BORDER_RADIUS}
           fill={table.headerColor ?? theme.tableHeader}
         />
-        <text
-          x={TABLE_WIDTH / 2}
-          y={HEADER_HEIGHT / 2}
-          dominantBaseline="central"
-          textAnchor="middle"
-          fill={theme.headerText}
-          fontSize={13}
-          fontWeight="bold"
-          fontFamily="monospace"
-        >
-          {table.schema ? `${table.schema}.${table.name}` : table.name}
-        </text>
+        <TableTitle table={table} color={theme.headerText} />
       </g>
     );
   }
@@ -124,18 +135,7 @@ export const TableNode = memo(function TableNode({
         height={TABLE_BORDER_RADIUS}
         fill={table.headerColor ?? theme.tableHeader}
       />
-      <text
-        x={TABLE_WIDTH / 2}
-        y={HEADER_HEIGHT / 2}
-        dominantBaseline="central"
-        textAnchor="middle"
-        fill={theme.headerText}
-        fontSize={13}
-        fontWeight="bold"
-        fontFamily="monospace"
-      >
-        {table.schema ? `${table.schema}.${table.name}` : table.name}
-      </text>
+      <TableTitle table={table} color={theme.headerText} />
       {visibleColumns.length > 0 && (
         <g transform={`translate(0, ${HEADER_HEIGHT + TABLE_PADDING})`}>
           {visibleColumns.map((col, i) => (
@@ -145,6 +145,7 @@ export const TableNode = memo(function TableNode({
               index={i}
               y={0}
               isFk={fkColumns.has(col.name)}
+              onHover={(columnName, x, y) => onHover?.({ tableName: table.name, columnName: columnName ?? undefined, x, y })}
             />
           ))}
         </g>

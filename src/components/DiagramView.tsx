@@ -14,7 +14,7 @@ interface DiagramViewProps {
   // DBML render inputs:
   schema: SchemaIR | null;
   layout: LayoutResult;
-  rankdir: "LR" | "TB";
+  rankdir: "LR" | "RL" | "TB";
   onToggleRankdir: () => void;
   detailLevel: DetailLevel;
   onToggleDetailLevel: () => void;

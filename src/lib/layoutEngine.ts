@@ -107,7 +107,7 @@ export function noteHeight(content: string): number {
 }
 
 export interface LayoutOptions {
-  rankdir: "LR" | "TB";
+  rankdir: "LR" | "RL" | "TB";
   detailLevel: DetailLevel;
 }
 
